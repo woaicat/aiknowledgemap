@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提示工程知识地图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .search-container {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .search-box {
+            position: relative;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: 2px solid #ddd;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .navigation {
+            padding: 20px 30px;
+            background: #fff;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .nav-btn:hover {
+            background: #4facfe;
+            color: white;
+            border-color: #4facfe;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 40px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .section-header:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            font-size: 1.5em;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        .toggle-icon {
+            font-size: 1.2em;
+            transition: transform 0.3s ease;
+        }
+
+        .section.collapsed .toggle-icon {
+            transform: rotate(-90deg);
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .section.collapsed .cards-container {
+            display: none;
+        }
+
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 4px solid #4facfe;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .card-content {
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .card-details {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+        }
+
+        .card.expanded .card-details {
+            max-height: 1000px;
+        }
+
+        .card-details ul {
+            margin-left: 20px;
+            margin-top: 10px;
+        }
+
+        .card-details li {
+            margin-bottom: 8px;
+            color: #555;
+        }
+
+        .highlight {
+            background-color: #fff3cd;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+
+        .section-basic { border-left-color: #28a745; }
+        .section-principles { border-left-color: #17a2b8; }
+        .section-methodology { border-left-color: #ffc107; }
+        .section-production { border-left-color: #dc3545; }
+        .section-evaluation { border-left-color: #6f42c1; }
+        .section-augment { border-left-color: #fd7e14; }
+        .section-summary { border-left-color: #20c997; }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #4facfe;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 20px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        .print-btn:hover {
+            background: #3a8bfe;
+            transform: scale(1.1);
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none;
+                border-radius: 0;
+            }
+            .search-container, .navigation, .print-btn {
+                display: none;
+            }
+            .card {
+                break-inside: avoid;
+                margin-bottom: 15px;
+            }
+            .section.collapsed .cards-container {
+                display: grid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2em;
+            }
+            .content {
+                padding: 20px;
+            }
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 提示工程知识地图</h1>
+            <p>掌握AI时代的核心技能 - 从基础概念到生产实践</p>
+        </div>
+
+        <div class="search-container">
+            <div class="search-box">
+                <input type="text" class="search-input" placeholder="搜索知识点..." id="searchInput">
+                <span class="search-icon">🔍</span>
+            </div>
+        </div>
+
+        <div class="navigation">
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="scrollToSection('basic')">基础概念</button>
+                <button class="nav-btn" onclick="scrollToSection('principles')">核心原则</button>
+                <button class="nav-btn" onclick="scrollToSection('methodology')">工程方法论</button>
+                <button class="nav-btn" onclick="scrollToSection('production')">生产级设计</button>
+                <button class="nav-btn" onclick="scrollToSection('evaluation')">效果评估</button>
+                <button class="nav-btn" onclick="scrollToSection('augment')">实践技巧</button>
+                <button class="nav-btn" onclick="scrollToSection('summary')">总结展望</button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- 基础概念 -->
+            <div class="section" id="basic">
+                <div class="section-header" onclick="toggleSection('basic')">
+                    <div class="section-title">📚 一、提示词基础概念</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="cards-container">
+                    <div class="card section-basic" onclick="toggleCard(this)">
+                        <div class="card-title">提示词定义</div>
+                        <div class="card-content">提示词是人类与大模型交互的桥梁，让大模型了解需要完成什么任务以及如何完成。</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 核心原则与技巧 -->
+            <div class="section" id="principles">
+                <div class="section-header" onclick="toggleSection('principles')">
+                    <div class="section-title">🎯 二、提示词撰写核心原则与技巧</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="cards-container">
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">语言边界与模型理解</div>
+                        <div class="card-content">语言具有惯性和连锁反应，总有理解歧义的空间。无法保证模型立刻理解并精确执行，需要不断调整优化。</div>
+                    </div>
+                    
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">提示词局限性</div>
+                        <div class="card-content">在企业级专业需求中存在瓶颈，需要判断适用场景。</div>
+                        <div class="card-details">
+                            <strong>技术限制包括：</strong>
+                            <ul>
+                                <li>上下文限制：文件数量和字数限制</li>
+                                <li>生成速度：回答速度相对较慢</li>
+                                <li>模型幻觉：无法保证百分百精确</li>
+                                <li>数据处理：不支持所有文件格式</li>
+                                <li>多模态：无法处理视频、音频等复杂媒体</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">提示词特性</div>
+                        <div class="card-content">门槛低、上限高、性价比高的AI应用落地方式。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li><strong>门槛低：</strong>普通员工可通过简单培训快速学会</li>
+                                <li><strong>上限高：</strong>精心设计可让输出质量接近专业人士</li>
+                                <li><strong>性价比高：</strong>当前最具性价比的AI应用方式</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">结构化输出稳定性</div>
+                        <div class="card-content">使用JSON或Markdown格式构建表格结构，引导模型按特定结构生成内容。</div>
+                        <div class="card-details">
+                            <strong>注意事项：</strong>在提示词中特别说明，要求模型确保输出结果可以在前端正常显示。
+                        </div>
+                    </div>
+
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">精确表达与消除歧义</div>
+                        <div class="card-content">提示词可以做到在模型能力范围内"言出法随"，关键在于清晰表达需求。</div>
+                        <div class="card-details">
+                            <strong>案例1 - 日期审核优化：</strong><br>
+                            初始：审核【送出日期】和【落款日期】是否和【data】一致<br>
+                            问题：模型只判断两个日期是否相互一致<br>
+                            改进：分别审核每个日期是否与【data】一致
+                            <br><br>
+                            <strong>案例2 - 文档内容审核：</strong><br>
+                            初始：审核2.2是否包含"……【data】……"<br>
+                            问题：模型会编造符合要求的内容<br>
+                            改进：审核全文是否包含具体内容，有则提取原文，无则填【无】
+                        </div>
+                    </div>
+
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">简洁与结构化平衡</div>
+                        <div class="card-content">过长提示词导致注意力分散，结构化便于理解和修改。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li><strong>简洁：</strong>珍惜上下文额度，用精准语言表达核心意图</li>
+                                <li><strong>结构化：</strong>便于修改记录，助于模型理解</li>
+                                <li><strong>原则：</strong>提示词随意性越高，输出不稳定性越强</li>
+                                <li><strong>减法策略：</strong>先写完整再删除不影响质量的描述</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">重复任务模板化</div>
+                        <div class="card-content">任务重复执行三次以上，最好设计稳定输出的提示词模板，提高效率和一致性。</div>
+                    </div>
+
+                    <div class="card section-principles" onclick="toggleCard(this)">
+                        <div class="card-title">不同模型响应特点</div>
+                        <div class="card-content">QWEN 2.5 72B服从度高但深度不足，DEEPSEEK R1创意强但易偏离要求。</div>
+                        <div class="card-details">
+                            <strong>QWEN 2.5 72B：</strong>
+                            <ul>
+                                <li>优势：服从度高、输出稳定、适合严格要求任务</li>
+                                <li>局限：复杂任务深度不足、语义理解有限</li>
+                            </ul>
+                            <strong>DEEPSEEK R1：</strong>
+                            <ul>
+                                <li>优势：创意型任务出色、语义理解强</li>
+                                <li>局限：不严格遵循提示词、易找捷径偏离要求</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 工程化方法论 -->
+            <div class="section" id="methodology">
+                <div class="section-header" onclick="toggleSection('methodology')">
+                    <div class="section-title">🔧 三、提示词工程化方法论</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="cards-container">
+                    <div class="card section-methodology" onclick="toggleCard(this)">
+                        <div class="card-title">迭代优化策略</div>
+                        <div class="card-content">第一版解决80%简单场景，第二版覆盖90%场景，第三版及以后在边缘案例上打磨。</div>
+                        <div class="card-details">
+                            <strong>迭代原则：</strong>
+                            <ul>
+                                <li>找到平衡点：满足核心需求且边际收益递减时可暂停</li>
+                                <li>记录每次迭代的变化和效果，积累经验</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-methodology" onclick="toggleCard(this)">
+                        <div class="card-title">科学工程方法</div>
+                        <div class="card-content">提示词撰写需要遵循完整的开发流程：需求分析、方案设计、实现、测试、优化。</div>
+                        <div class="card-details">
+                            <strong>开发流程：</strong>
+                            <ul>
+                                <li><strong>需求分析：</strong>明确业务目标、理解真正问题、识别边界情况</li>
+                                <li><strong>方案设计：</strong>考虑整体结构、组织各要素、确保模块化</li>
+                                <li><strong>实现阶段：</strong>编写具体内容、敏锐感知表达方式</li>
+                                <li><strong>测试阶段：</strong>设计测试用例、发现弱点盲区</li>
+                                <li><strong>优化阶段：</strong>针对性调整、反复试错</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-methodology" onclick="toggleCard(this)">
+                        <div class="card-title">资源优化策略</div>
+                        <div class="card-content">在资源有限情况下最大化现有模型效果的策略。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li>将复杂任务拆分成多个简单任务</li>
+                                <li>利用少样本学习提供高质量示例</li>
+                                <li>设计巧妙结构让模型按特定思考路径解决问题</li>
+                                <li>开发工具供模型使用，发展为agent应用</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 生产级提示词设计 -->
+            <div class="section" id="production">
+                <div class="section-header" onclick="toggleSection('production')">
+                    <div class="section-title">🏭 四、生产级提示词设计</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="cards-container">
+                    <div class="card section-production" onclick="toggleCard(this)">
+                        <div class="card-title">Parahelp案例分析</div>
+                        <div class="card-content">Y Combinator S24投资的Parahelp为Captions搭建客服系统，7天完成部署，实现46%工单自动化。</div>
+                    </div>
+
+                    <div class="card section-production" onclick="toggleCard(this)">
+                        <div class="card-title">在不确定中保持可靠</div>
+                        <div class="card-content">面临信息不完整性挑战，通过反复强调约束和详细指导来处理不确定性。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li>完整提示词包含约1.5K词元动态信息</li>
+                                <li>模型很少能获取全部信息</li>
+                                <li>需要明确处理不确定性的约束</li>
+                                <li>对AI规划过程有详细指导</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-production" onclick="toggleCard(this)">
+                        <div class="card-title">复杂决策结构化建模</div>
+                        <div class="card-content">引入"模型RAM（工作记忆）"概念，通过架构设计分解复杂性。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li>真实商业场景涉及复杂条件分支</li>
+                                <li>当决策分支超出模型处理能力时需要架构设计</li>
+                                <li>通过分解复杂性来应对挑战</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-production" onclick="toggleCard(this)">
+                        <div class="card-title">技术实现特点</div>
+                        <div class="card-content">大量使用XML结构化语法，强调思维框架而非死板模板。</div>
+                        <div class="card-details">
+                            <strong>XML结构与条件逻辑：</strong>
+                            <ul>
+                                <li>使用带条件的XML if块，禁用else语句</li>
+                                <li>提供思维框架而非死板模板</li>
+                            </ul>
+                            <strong>工程化开发流程：</strong>
+                            <ul>
+                                <li>花费数百小时优化几百行提示词</li>
+                                <li>大部分时间花在设计评估体系、运行测试</li>
+                                <li>有明确成功指标，每次迭代都要改进</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-production" onclick="toggleCard(this)">
+                        <div class="card-title">设计原则</div>
+                        <div class="card-content">从Parahelp实践提炼的核心原则：明确思维顺序、结构化格式、角色定义等。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li>明确思维顺序</li>
+                                <li>结构化格式</li>
+                                <li>角色定义</li>
+                                <li>关键指令强调</li>
+                                <li>通过冗余确保关键指令被遵循</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-production" onclick="toggleCard(this)">
+                        <div class="card-title">设计理念转变</div>
+                        <div class="card-content">从"让AI表现得聪明"到"让AI表现得可靠"的根本转变。</div>
+                        <div class="card-details">
+                            工业级提示词将复杂现实问题转化为AI能一致处理的决策框架。
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 效果评估 -->
+            <div class="section" id="evaluation">
+                <div class="section-header" onclick="toggleSection('evaluation')">
+                    <div class="section-title">📊 五、提示词效果评估</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="cards-container">
+                    <div class="card section-evaluation" onclick="toggleCard(this)">
+                        <div class="card-title">专业评估工具</div>
+                        <div class="card-content">LMSYS Chatbot Arena、PromptTools、OpenAI Evals、Promptfoo等专业工具。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li><strong>LMSYS Chatbot Arena：</strong>A/B测试比较不同prompt效果</li>
+                                <li><strong>PromptTools：</strong>开源测试评估框架，支持批量测试</li>
+                                <li><strong>OpenAI Evals：</strong>评估模型各种任务表现</li>
+                                <li><strong>Promptfoo：</strong>自动化测试工具，支持多模型比较</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-evaluation" onclick="toggleCard(this)">
+                        <div class="card-title">通用数据分析工具</div>
+                        <div class="card-content">Python数据分析库（Pandas、Matplotlib等）和专业统计软件（SPSS、R语言）。</div>
+                    </div>
+
+                    <div class="card section-evaluation" onclick="toggleCard(this)">
+                        <div class="card-title">评估指标体系</div>
+                        <div class="card-content">包含定量指标（准确率、一致性等）和定性指标（相关性、有用性等）。</div>
+                        <div class="card-details">
+                            <strong>定量指标：</strong>
+                            <ul>
+                                <li>准确率：prompt生成结果的正确性</li>
+                                <li>一致性：多次使用同一prompt的结果稳定性</li>
+                                <li>响应时间：生成回答所需时间</li>
+                                <li>令牌使用效率：完成任务所需令牌数量</li>
+                            </ul>
+                            <strong>定性指标：</strong>
+                            <ul>
+                                <li>相关性：生成内容与用户意图匹配度</li>
+                                <li>有用性：内容对用户的实际帮助程度</li>
+                                <li>创新性：生成内容的独特性和创造性</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-evaluation" onclick="toggleCard(this)">
+                        <div class="card-title">评估方法</div>
+                        <div class="card-content">A/B测试、用户反馈收集、自动化测试、人工评估等多种方法。</div>
+                    </div>
+
+                    <div class="card section-evaluation" onclick="toggleCard(this)">
+                        <div class="card-title">实施步骤</div>
+                        <div class="card-content">从确定评估目标到迭代测试的完整流程。</div>
+                        <div class="card-details">
+                            <ol>
+                                <li>确定评估目标：明确想优化的prompt方面</li>
+                                <li>选择合适工具：根据需求选择评估工具</li>
+                                <li>设计测试方案：创建测试数据集和评估标准</li>
+                                <li>执行测试：收集数据</li>
+                                <li>分析结果：使用数据分析工具处理结果</li>
+                                <li>优化prompt：根据分析结果改进prompt</li>
+                                <li>迭代测试：持续测试和优化</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Augment实践技巧 -->
+            <div class="section" id="augment">
+                <div class="section-header" onclick="toggleSection('augment')">
+                    <div class="section-title">💡 六、Augment官方博客：AI编程提示词工程的11个实践技巧</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="cards-container">
+                    <div class="card section-augment" onclick="toggleCard(this)">
+                        <div class="card-title">Augment介绍</div>
+                        <div class="card-content">超好用的AI编程插件，曾因支持超长上下文被称为超越Cursor的存在。</div>
+                    </div>
+
+                    <div class="card section-augment" onclick="toggleCard(this)">
+                        <div class="card-title">提示词工程基础</div>
+                        <div class="card-content">通过给模型提供更好的Prompt，让它在特定任务上发挥更好表现的艺术。</div>
+                        <div class="card-details">
+                            <strong>组成部分：</strong>系统提示、工具定义、工具输出、用户指令、模型之前输出<br>
+                            <strong>改进方式：</strong>在系统提示词加通用指令、在工具定义解释使用情况等
+                        </div>
+                    </div>
+
+                    <div class="card section-augment" onclick="toggleCard(this)">
+                        <div class="card-title">看待模型的方式</div>
+                        <div class="card-content">模型是人造智能体，给模型下指令像和人对话，信息越完整一致，表现越好。</div>
+                    </div>
+
+                    <div class="card section-augment" onclick="toggleCard(this)">
+                        <div class="card-title">11个实践技巧</div>
+                        <div class="card-content">从专注上下文到注意提示词"瓶颈"的全面技巧指南。</div>
+                        <div class="card-details">
+                            <ol>
+                                <li><strong>专注上下文：</strong>提供最优质上下文信息</li>
+                                <li><strong>提供完整世界图景：</strong>描述模型所处环境和可用资源</li>
+                                <li><strong>保持一致：</strong>系统提示词、工具定义等要一致</li>
+                                <li><strong>与用户视角一致：</strong>让模型站在用户角度思考</li>
+                                <li><strong>充分详尽：</strong>模型能从详细提示词受益</li>
+                                <li><strong>避免过度拟合：</strong>提供示例但要测试过度拟合风险</li>
+                                <li><strong>注意工具调用局限：</strong>模型调用工具有限制</li>
+                                <li><strong>"威胁"或"唤起同理心"：</strong>说明后果有时提升表现</li>
+                                <li><strong>留意提示词缓存：</strong>避免频繁修改开头内容</li>
+                                <li><strong>关注重点位置：</strong>模型更关注开头和用户消息结尾</li>
+                                <li><strong>注意提示词"瓶颈"：</strong>采取任务分解、提供示例等策略</li>
+                            </ol>
+                        </div>
+                    </div>
+
+                    <div class="card section-augment" onclick="toggleCard(this)">
+                        <div class="card-title">总结要点</div>
+                        <div class="card-content">给AI完整一致上下文，验证其行动并反复试验，像管理代码库一样管理提示词。</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 总结与展望 -->
+            <div class="section" id="summary">
+                <div class="section-header" onclick="toggleSection('summary')">
+                    <div class="section-title">🌟 七、总结与展望</div>
+                    <div class="toggle-icon">▼</div>
+                </div>
+                <div class="cards-container">
+                    <div class="card section-summary" onclick="toggleCard(this)">
+                        <div class="card-title">核心要点</div>
+                        <div class="card-content">提示词工程融合语言艺术与科学实践，需要语言敏锐感知和系统化工程思维。</div>
+                        <div class="card-details">
+                            <ul>
+                                <li>提示词工程不是终点，而是通向AI应用落地的重要路径</li>
+                                <li>需要不断通过实践积累经验，在迭代中寻找最佳平衡点</li>
+                                <li>随着技术发展，工具会更强大，但思考方式和方法论将继续指引我们</li>
+                                <li>最终目标是为业务创造真正的价值</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div class="card section-summary" onclick="toggleCard(this)">
+                        <div class="card-title">未来展望</div>
+                        <div class="card-content">通过系统化学习和实践，更好地掌握提示词工程精髓，在AI时代创造更大价值。</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button class="print-btn" onclick="window.print()" title="打印知识地图">🖨️</button>
+
+    <script>
+        // 搜索功能
+        document.getElementById('searchInput').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                const content = card.querySelector('.card-content').textContent.toLowerCase();
+                const details = card.querySelector('.card-details');
+                const detailsText = details ? details.textContent.toLowerCase() : '';
+                
+                if (title.includes(searchTerm) || content.includes(searchTerm) || detailsText.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    // 高亮搜索词
+                    highlightSearchTerm(card, searchTerm);
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+            
+            // 如果有搜索词，展开所有section
+            if (searchTerm) {
+                document.querySelectorAll('.section').forEach(section => {
+                    section.classList.remove('collapsed');
+                });
+            }
+        });
+
+        // 高亮搜索词
+        function highlightSearchTerm(card, searchTerm) {
+            if (!searchTerm) return;
+            
+            const elements = card.querySelectorAll('.card-title, .card-content, .card-details');
+            elements.forEach(element => {
+                const text = element.innerHTML;
+                const regex = new RegExp(`(${searchTerm})`, 'gi');
+                element.innerHTML = text.replace(regex, '<span class="highlight">$1</span>');
+            });
+        }
+
+        // 切换section展开/折叠
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('collapsed');
+        }
+
+        // 切换卡片详情
+        function toggleCard(card) {
+            card.classList.toggle('expanded');
+        }
+
+        // 滚动到指定section
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.scrollIntoView({ behavior: 'smooth' });
+            // 确保section是展开的
+            section.classList.remove('collapsed');
+        }
+
+        // 初始化：展开所有section
+        document.addEventListener('DOMContentLoaded', function() {
+            // 可以选择默认折叠某些section
+            // document.querySelectorAll('.section').forEach(section => {
+            //     section.classList.add('collapsed');
+            // });
+        });
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + F 聚焦搜索框
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            
+            // ESC 清空搜索
+            if (e.key === 'Escape') {
+                document.getElementById('searchInput').value = '';
+                document.getElementById('searchInput').dispatchEvent(new Event('input'));
+            }
+        });
+    </script>
+</body>
+</html>

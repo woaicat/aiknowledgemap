@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>自注意力机制知识地图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .search-container {
+            max-width: 600px;
+            margin: 0 auto 30px;
+            position: relative;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 15px 50px 15px 20px;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            outline: none;
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #666;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .nav-button {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            border: 2px solid rgba(255,255,255,0.3);
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+        }
+
+        .nav-button:hover {
+            background: rgba(255,255,255,0.3);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section {
+            margin-bottom: 40px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            color: white;
+        }
+
+        .section-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-icon {
+            margin-right: 15px;
+            font-size: 1.2em;
+        }
+
+        .toggle-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border-left: 5px solid #667eea;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+        }
+
+        .card-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .card-emoji {
+            margin-right: 10px;
+            font-size: 1.2em;
+        }
+
+        .card-content {
+            color: #666;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .card-detail {
+            display: none;
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #eee;
+            color: #555;
+            line-height: 1.7;
+        }
+
+        .card.expanded .card-detail {
+            display: block;
+        }
+
+        .card.expanded {
+            background: #f8f9ff;
+        }
+
+        .section.collapsed .cards-grid {
+            display: none;
+        }
+
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .formula {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+            border-left: 4px solid #007bff;
+        }
+
+        .example {
+            background: #e8f5e8;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #28a745;
+        }
+
+        .color-basic { border-left-color: #ff6b6b; }
+        .color-attention { border-left-color: #4ecdc4; }
+        .color-multihead { border-left-color: #45b7d1; }
+        .color-feedforward { border-left-color: #96ceb4; }
+        .color-mask { border-left-color: #feca57; }
+        .color-architecture { border-left-color: #ff9ff3; }
+        .color-training { border-left-color: #54a0ff; }
+        .color-application { border-left-color: #5f27cd; }
+
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2em;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+                color: black;
+            }
+            
+            .section {
+                background: white;
+                border: 1px solid #ddd;
+                break-inside: avoid;
+            }
+            
+            .card {
+                break-inside: avoid;
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🧠 自注意力机制知识地图</h1>
+        <p>深度理解Transformer核心技术的完整知识体系</p>
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-box" placeholder="搜索知识点..." id="searchBox">
+        <span class="search-icon">🔍</span>
+    </div>
+
+    <div class="navigation">
+        <button class="nav-button" onclick="scrollToSection('basic')">基础概念</button>
+        <button class="nav-button" onclick="scrollToSection('attention')">注意力机制</button>
+        <button class="nav-button" onclick="scrollToSection('multihead')">多头注意力</button>
+        <button class="nav-button" onclick="scrollToSection('feedforward')">前馈网络</button>
+        <button class="nav-button" onclick="scrollToSection('mask')">掩码机制</button>
+        <button class="nav-button" onclick="scrollToSection('architecture')">完整架构</button>
+        <button class="nav-button" onclick="scrollToSection('training')">训练过程</button>
+        <button class="nav-button" onclick="scrollToSection('application')">实际应用</button>
+    </div>
+
+    <div class="container">
+        <!-- 基础概念板块 -->
+        <div class="section" id="basic">
+            <div class="section-header" onclick="toggleSection('basic')">
+                <div class="section-title">
+                    <span class="section-icon">🎯</span>
+                    基础概念与动机
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-basic" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🍎</span>
+                        Transformer核心目标
+                    </div>
+                    <div class="card-content">
+                        通过信息聚合得到理解整段文字语义的向量，本质是特征提取过程
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>就像看电影时大脑的工作方式，不是逐字理解，而是把所有信息（对话、画面、音乐、情节）"搅拌"在一起，形成完整理解："这是一部浪漫喜剧片"。
+                        <br><br>
+                        <strong>技术要点：</strong>
+                        <ul>
+                            <li>目标：语义理解的向量表示</li>
+                            <li>方法：信息聚合与特征提取</li>
+                            <li>结果：包含整段文字语义的最终向量</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-basic" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🚂</span>
+                        RNN的局限性
+                    </div>
+                    <div class="card-content">
+                        信息丢失、无法并行化、梯度消失等问题限制了长序列处理能力
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>RNN像老式传话游戏，"今天天气很好"传到最后可能只剩"好"。而且必须一个接一个传，不能同时进行。
+                        <br><br>
+                        <strong>具体问题：</strong>
+                        <div class="example">
+                            输入序列: [我, 喜欢, 吃, 苹果]<br>
+                            RNN处理: 我 → 喜欢 → 吃 → 苹果<br>
+                            问题: 处理到"苹果"时，"我"的信息已经很微弱
+                        </div>
+                        <ul>
+                            <li><span class="highlight">信息丢失</span>：长序列处理时早期信息逐渐丢失</li>
+                            <li><span class="highlight">无法并行</span>：必须按顺序处理，计算效率低</li>
+                            <li><span class="highlight">梯度消失</span>：反向传播时梯度衰减</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-basic" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🎯</span>
+                        自注意力优势
+                    </div>
+                    <div class="card-content">
+                        全局信息访问、并行计算、动态权重分配解决了RNN的核心问题
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>像现代智能手机，有足够内存和强大处理器。打字时能同时"看到"整个句子，知道词与词的关系，给不同词分配不同注意力权重。
+                        <br><br>
+                        <strong>核心优势：</strong>
+                        <ul>
+                            <li><span class="highlight">全局信息访问</span>：每个位置直接访问所有其他位置</li>
+                            <li><span class="highlight">并行计算</span>：所有位置同时计算</li>
+                            <li><span class="highlight">动态权重</span>：根据相关性动态分配注意力</li>
+                        </ul>
+                        <br>
+                        <strong>对比：</strong>RNN像接力跑（顺序传递），自注意力像直升机（直接到达任意位置）
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 注意力机制基础板块 -->
+        <div class="section" id="attention">
+            <div class="section-header" onclick="toggleSection('attention')">
+                <div class="section-title">
+                    <span class="section-icon">🔍</span>
+                    注意力机制基础
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-attention" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🏫</span>
+                        QKV基本概念
+                    </div>
+                    <div class="card-content">
+                        Query查询信息、Key匹配键、Value实际值，类比预测学生体重的过程
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>班主任预测新同学小明（170cm）的体重
+                        <br><br>
+                        <div class="example">
+                            <strong>已知数据：</strong><br>
+                            小王：身高168cm，体重60kg<br>
+                            小李：身高172cm，体重65kg<br>
+                            小张：身高165cm，体重55kg<br>
+                            小赵：身高175cm，体重70kg
+                        </div>
+                        <ul>
+                            <li><span class="highlight">Q (Query)</span>：小明身高170cm —— "我想知道170cm的人有多重？"</li>
+                            <li><span class="highlight">K (Key)</span>：其他同学身高[168,172,165,175] —— "用来比较的标准"</li>
+                            <li><span class="highlight">V (Value)</span>：其他同学体重[60,65,55,70] —— "实际的答案"</li>
+                        </ul>
+                        小明身高和小李最接近，所以小李体重的参考价值最大
+                    </div>
+                </div>
+
+                <div class="card color-attention" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🧮</span>
+                        注意力计算过程
+                    </div>
+                    <div class="card-content">
+                        相似度计算→权重归一化→加权求和，三步得到最终结果
+                    </div>
+                    <div class="card-detail">
+                        <strong>计算步骤：</strong>
+                        <ol>
+                            <li><span class="highlight">算相似度</span>：小明170cm vs [168,172,165,175] → 相似度[高,很高,中,中]</li>
+                            <li><span class="highlight">转成百分比</span>：相似度变成百分比 [20%,50%,15%,15%]</li>
+                            <li><span class="highlight">加权平均</span>：60×20% + 65×50% + 55×15% + 70×15% = 63.25kg</li>
+                        </ol>
+                        <br>
+                        <div class="formula">
+                            <strong>数学公式：</strong><br>
+                            Attention(Q,K,V) = softmax(QK^T/√d_k)V
+                        </div>
+                        <strong>公式解释：</strong>
+                        <ul>
+                            <li>QK^T：计算查询和键的相似度矩阵</li>
+                            <li>√d_k：缩放因子，防止softmax饱和</li>
+                            <li>softmax：将相似度转换为概率分布</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-attention" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🪞</span>
+                        自注意力核心思想
+                    </div>
+                    <div class="card-content">
+                        Q、K、V都来自同一输入序列，每个token既是查询者也是被查询对象
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>班级聚会，每个同学都想了解其他同学近况。不是"新同学问老同学"，而是"同学们互相问"。
+                        <br><br>
+                        <div class="example">
+                            句子"我喜欢吃苹果"中：<br>
+                            • "我"问："喜欢"、"吃"、"苹果"和我什么关系？<br>
+                            • "喜欢"问："我"、"吃"、"苹果"和我什么关系？<br>
+                            • "吃"问："我"、"喜欢"、"苹果"和我什么关系？<br>
+                            • "苹果"问："我"、"喜欢"、"吃"和我什么关系？
+                        </div>
+                        <strong>关键特点：</strong>
+                        <ul>
+                            <li>每个词既是提问者，也是回答者</li>
+                            <li>所有词之间可以直接交互</li>
+                            <li>信息在整个序列中充分流动</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 多头注意力机制板块 -->
+        <div class="section" id="multihead">
+            <div class="section-header" onclick="toggleSection('multihead')">
+                <div class="section-title">
+                    <span class="section-icon">👥</span>
+                    多头注意力机制
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-multihead" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🎬</span>
+                        多头设计动机
+                    </div>
+                    <div class="card-content">
+                        单一注意力头只能从一个角度提取特征，多头机制实现多角度同时理解
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>评价电影时，96个不同专业的影评人同时工作
+                        <br><br>
+                        <div class="example">
+                            <strong>专业分工：</strong><br>
+                            • 影评人1（情感专家）："这部电影很感人，让我哭了"<br>
+                            • 影评人2（剧情专家）："故事逻辑严密，没有漏洞"<br>
+                            • 影评人3（摄影专家）："画面构图很美，色彩搭配棒"<br>
+                            • 影评人4（音效专家）："背景音乐很棒，音效逼真"<br>
+                            • ...<br>
+                            • 影评人96：关注其他细节
+                        </div>
+                        <strong>优势：</strong>
+                        <ul>
+                            <li>头1：关注情感信息</li>
+                            <li>头2：关注逻辑关系</li>
+                            <li>头3：关注语法结构</li>
+                            <li>头96：关注其他语义维度</li>
+                        </ul>
+                        综合96个角度的理解，比单一角度更全面！
+                    </div>
+                </div>
+
+                <div class="card color-multihead" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🍕</span>
+                        计算优化策略
+                    </div>
+                    <div class="card-content">
+                        每个头使用降维(128维)，总计算量保持不变(96×128=12288)
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>大披萨的分配策略
+                        <br><br>
+                        <div class="example">
+                            <strong>方案对比：</strong><br>
+                            方案1：一个人吃整个披萨(12288维)<br>
+                            → 吃得很饱，但只有一种口味体验<br><br>
+                            方案2：96个人分享，每人一小块(128维)<br>
+                            → 每个人吃得少，但96种不同体验
+                        </div>
+                        <strong>技术细节：</strong>
+                        <div class="formula">
+                            原始维度: 12288<br>
+                            每个头维度: 128 (12288/96)<br>
+                            总计算量: 96 × 128 = 12288
+                        </div>
+                        <ul>
+                            <li>虽然每个头处理的信息少了</li>
+                            <li>但96个头的总体验比1个头丰富得多</li>
+                            <li>总的计算量保持不变</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-multihead" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🏭</span>
+                        并行计算流程
+                    </div>
+                    <div class="card-content">
+                        96条生产线并行工作：特征提取→注意力计算→信息融合
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>大工厂的96条专业生产线
+                        <br><br>
+                        <strong>第一步：并行特征提取</strong>
+                        <div class="example">
+                            输入: 1300个12288维向量<br><br>
+                            生产线1: WQ1,WK1,WV1 → 专门生产"情感分析零件"<br>
+                            生产线2: WQ2,WK2,WV2 → 专门生产"语法分析零件"<br>
+                            生产线3: WQ3,WK3,WV3 → 专门生产"逻辑关系零件"<br>
+                            ...<br>
+                            生产线96: WQ96,WK96,WV96 → 专门生产其他零件
+                        </div>
+                        <strong>第二步：并行注意力计算</strong>
+                        <ul>
+                            <li>每条生产线独立工作，互不干扰</li>
+                            <li>生产线1："我专门分析情感，发现'喜欢'是正面情感"</li>
+                            <li>生产线2："我专门分析语法，'我'是主语"</li>
+                            <li>96条生产线同时开工，效率超高！</li>
+                        </ul>
+                        <strong>第三步：信息融合</strong>
+                        <div class="formula">
+                            拼接: Concat(head1, head2, ..., head96)<br>
+                            融合: WO × 拼接结果 → 最终输出
+                        </div>
+                        就像汽车总装：发动机、轮胎、方向盘都重要，但需要总装师傅组装成能开的汽车！
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Feed Forward网络板块 -->
+        <div class="section" id="feedforward">
+            <div class="section-header" onclick="toggleSection('feedforward')">
+                <div class="section-title">
+                    <span class="section-icon">🤖</span>
+                    Feed Forward网络
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-feedforward" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🎨</span>
+                        设计理念对比
+                    </div>
+                    <div class="card-content">
+                        多头注意力体现人类设计思路，Feed Forward更多交给机器学习
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>两种不同的工作方式
+                        <br><br>
+                        <div class="example">
+                            <strong>多头注意力 🎨：</strong><br>
+                            像人类设计师精心设计的流水线<br>
+                            每个环节都有明确分工<br>
+                            按照菜谱一步步做菜<br><br>
+                            <strong>Feed Forward 🤖：</strong><br>
+                            像AI自己摸索的"黑盒子"<br>
+                            我们知道它有用，但不完全知道内部机制<br>
+                            让AI自己琢磨怎么调味
+                        </div>
+                        <strong>核心区别：</strong>
+                        <ul>
+                            <li><span class="highlight">多头注意力</span>：人类可解释的设计</li>
+                            <li><span class="highlight">Feed Forward</span>：机器自主学习的能力</li>
+                            <li>两者结合：既有设计的精确性，又有学习的灵活性</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-feedforward" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🎈</span>
+                        网络结构设计
+                    </div>
+                    <div class="card-content">
+                        输入12288维→扩展49152维→压缩回12288维的"气球"过程
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>神奇气球的变化过程
+                        <br><br>
+                        <div class="example">
+                            <strong>气球变化过程：</strong><br>
+                            1. 输入：普通大小气球(12288维)<br>
+                            2. W1扩展：把气球吹大4倍(49152维) — 能装更多东西<br>
+                            3. 激活函数：给气球"体检"，决定哪些部分保留<br>
+                            4. W2压缩：压回原来大小(12288维) — 里面的"精华"更浓缩
+                        </div>
+                        <div class="formula">
+                            输入: 12288维向量<br>
+                            ↓ (W1)<br>
+                            中间层: 49152维向量 (4倍扩展)<br>
+                            ↓ (激活函数)<br>
+                            ↓ (W2)<br>
+                            输出: 12288维向量
+                        </div>
+                        <strong>类比：</strong>把葡萄榨成葡萄汁，再浓缩成葡萄精华！
+                        <br><br>
+                        <strong>参数量：</strong>
+                        <ul>
+                            <li>W1参数量: 约6亿参数</li>
+                            <li>W2参数量: 约6亿参数</li>
+                            <li>总计: 约12亿参数（占模型大部分！）</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-feedforward" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🔍</span>
+                        扩展压缩机制
+                    </div>
+                    <div class="card-content">
+                        扩展阶段增强表达能力，压缩阶段选择性保留重要特征
+                    </div>
+                    <div class="card-detail">
+                        <strong>两阶段详解：</strong>
+                        <br><br>
+                        <div class="example">
+                            <strong>扩展阶段 🔍：</strong><br>
+                            像用放大镜看东西，原本看不清的细节都能看到<br>
+                            • 原来："这是个苹果"<br>
+                            • 放大后："这是个红色的、有光泽的、新鲜的、甜的苹果"<br><br>
+                            <strong>压缩阶段 📝：</strong><br>
+                            像写总结，保留重要信息，删掉不重要的<br>
+                            • 保留："红色"、"新鲜"、"甜"<br>
+                            • 删掉："有光泽"（不太重要）<br>
+                            • 最终："这是个红色新鲜甜苹果"
+                        </div>
+                        <strong>技术原理：</strong>
+                        <ul>
+                            <li><span class="highlight">扩展阶段</span>：将特征放大4倍，增强表达能力</li>
+                            <li><span class="highlight">压缩阶段</span>：选择性保留重要特征，去除冗余</li>
+                            <li><span class="highlight">激活函数</span>：决定哪些神经元被激活</li>
+                        </ul>
+                        这个过程让模型能够进行更复杂的非线性变换和特征学习
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 掩码机制板块 -->
+        <div class="section" id="mask">
+            <div class="section-header" onclick="toggleSection('mask')">
+                <div class="section-title">
+                    <span class="section-icon">🙈</span>
+                    掩码机制
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-mask" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">👀</span>
+                        编码器vs解码器
+                    </div>
+                    <div class="card-content">
+                        编码器可以看到全部信息，解码器只能看到当前和之前的信息
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>看电影的两种方式
+                        <br><br>
+                        <div class="example">
+                            <strong>编码器 👀 - 看完整电影：</strong><br>
+                            • 已经看完整部电影，知道所有剧情<br>
+                            • 可以分析任何角色和情节的关系<br>
+                            • "我知道主角最后会和女主角在一起，所以第10分钟的对话很重要"<br><br>
+                            <strong>解码器 🙈 - 正在看电影：</strong><br>
+                            • 只看到了前30分钟，不知道后面发生什么<br>
+                            • 只能根据已看内容来猜测<br>
+                            • "我现在只看到主角遇到女主角，不知道最后会怎样"
+                        </div>
+                        <strong>应用场景：</strong>
+                        <ul>
+                            <li><span class="highlight">编码器（无掩码）</span>：理解任务（分类、翻译编码端）</li>
+                            <li><span class="highlight">解码器（带掩码）</span>：生成任务，防止"未来信息泄露"</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-mask" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🚫</span>
+                        掩码实现原理
+                    </div>
+                    <div class="card-content">
+                        将注意力矩阵的上三角部分设为0，确保不能看到未来信息
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>考试中的防作弊机制
+                        <br><br>
+                        <div class="example">
+                            <strong>没有掩码 📖 - 开卷考试：</strong><br>
+                            • 可以看整张试卷<br>
+                            • 知道第5题答案可能对第3题有帮助<br>
+                            • 可以前后参考，统筹安排<br><br>
+                            <strong>有掩码 🚫 - 按顺序答题：</strong><br>
+                            • 现在做第3题，不能偷看第4、5题<br>
+                            • 只能根据第1、2题信息答第3题<br>
+                            • 试图偷看后面题目会被"遮住"（权重变成0）
+                        </div>
+                        <strong>技术实现：</strong>
+                        <div class="formula">
+                            原始注意力矩阵:<br>
+                            [[a11, a12, a13, a14],<br>
+                             [a21, a22, a23, a24],<br>
+                             [a31, a32, a33, a34],<br>
+                             [a41, a42, a43, a44]]<br><br>
+                            掩码后（上三角设为0）:<br>
+                            [[a11,  0,   0,   0 ],<br>
+                             [a21, a22,  0,   0 ],<br>
+                             [a31, a32, a33,  0 ],<br>
+                             [a41, a42, a43, a44]]
+                        </div>
+                        确保AI生成文字时不会"作弊"偷看还没生成的内容！
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 完整架构板块 -->
+        <div class="section" id="architecture">
+            <div class="section-header" onclick="toggleSection('architecture')">
+                <div class="section-title">
+                    <span class="section-icon">🏗️</span>
+                    完整Transformer架构
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-architecture" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🔧</span>
+                        单层解码器结构
+                    </div>
+                    <div class="card-content">
+                        多头自注意力→残差连接→Feed Forward→残差连接的完整流程
+                    </div>
+                    <div class="card-detail">
+                        <strong>单层解码器组件：</strong>
+                        <div class="formula">
+                            输入向量<br>
+                            ↓<br>
+                            多头自注意力 (Masked Multi-Head Attention)<br>
+                            ↓<br>
+                            残差连接 + 层归一化<br>
+                            ↓<br>
+                            Feed Forward网络<br>
+                            ↓<br>
+                            残差连接 + 层归一化<br>
+                            ↓<br>
+                            输出向量
+                        </div>
+                        <strong>关键技术：</strong>
+                        <ul>
+                            <li><span class="highlight">残差连接</span>：防止梯度消失，保持信息流动</li>
+                            <li><span class="highlight">层归一化</span>：稳定训练过程</li>
+                            <li><span class="highlight">掩码注意力</span>：防止未来信息泄露</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-architecture" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🏢</span>
+                        完整模型结构
+                    </div>
+                    <div class="card-content">
+                        从输入文本到输出概率的完整数据流，以GPT-3为例
+                    </div>
+                    <div class="card-detail">
+                        <strong>完整数据流（GPT-3）：</strong>
+                        <div class="formula">
+                            输入文本<br>
+                            ↓<br>
+                            Tokenization (分词)<br>
+                            ↓<br>
+                            Embedding (词嵌入)<br>
+                            ↓<br>
+                            Positional Encoding (位置编码)<br>
+                            ↓<br>
+                            96层解码器<br>
+                            ↓<br>
+                            Linear层 (输出投影)<br>
+                            ↓<br>
+                            Softmax (概率分布)<br>
+                            ↓<br>
+                            下一个token概率
+                        </div>
+                        <strong>关键参数（GPT-3）：</strong>
+                        <ul>
+                            <li><span class="highlight">层数</span>：96层解码器</li>
+                            <li><span class="highlight">注意力头数</span>：96个头</li>
+                            <li><span class="highlight">隐藏维度</span>：12288</li>
+                            <li><span class="highlight">每头维度</span>：128</li>
+                            <li><span class="highlight">Feed Forward中间维度</span>：49152 (4倍扩展)</li>
+                            <li><span class="highlight">总参数量</span>：1750亿</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 训练过程板块 -->
+        <div class="section" id="training">
+            <div class="section-header" onclick="toggleSection('training')">
+                <div class="section-title">
+                    <span class="section-icon">🎓</span>
+                    训练过程详解
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-training" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🎲</span>
+                        参数学习过程
+                    </div>
+                    <div class="card-content">
+                        从随机初始化到收敛的完整学习过程，像教学生做题一样
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>教学生做题的完整过程
+                        <br><br>
+                        <strong>1. 参数初始化 🎲：</strong>
+                        <div class="example">
+                            新学生刚入学，对所有知识都是"瞎猜"状态<br>
+                            • WQ参数："我随便猜这个词重要不重要"<br>
+                            • WK参数："我随便猜这两个词有没有关系"<br>
+                            就像掷骰子一样，完全随机！
+                        </div>
+                        <strong>2. 前向传播 📝：</strong>
+                        <div class="example">
+                            学生开始做题："我___苹果"<br>
+                            • 第1层："我觉得这里应该填动词"<br>
+                            • 第2层："我觉得是关于食物的动词"<br>
+                            • 最后输出："我觉得答案是'讨厌'"
+                        </div>
+                        <strong>3. 损失计算 ❌：</strong>
+                        <div class="example">
+                            老师批改：<br>
+                            • 学生答案："我讨厌苹果"<br>
+                            • 正确答案："我喜欢苹果"<br>
+                            • 老师："错了！差得很远，扣10分"<br>
+                            这个"10分"就是损失值
+                        </div>
+                        <strong>4. 反向传播 🔍：</strong>
+                        <div class="example">
+                            老师分析哪里出错：<br>
+                            • "第3层判断情感时出错，应该往'正面情感'调整"<br>
+                            • "WQ参数太关注'讨厌'，应该减少一点"<br>
+                            每个参数都得到具体"改进建议"（梯度）
+                        </div>
+                        <strong>5. 参数更新 📈：</strong>
+                        <div class="formula">
+                            新参数 = 旧参数 - 学习率 × 梯度
+                        </div>
+                        <div class="example">
+                            学生根据建议改进：<br>
+                            • "对'讨厌'关注度从0.8调到0.7"<br>
+                            • "对'喜欢'关注度从0.3调到0.5"<br>
+                            学习率像"调整幅度"，太大容易过头，太小学得慢
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card color-training" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">📚</span>
+                        预训练阶段
+                    </div>
+                    <div class="card-content">
+                        大规模无标注文本上的下一个token预测，学习语言基本规律
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>小学阶段 - 学基础知识
+                        <br><br>
+                        <div class="example">
+                            <strong>学习过程：</strong><br>
+                            就像小孩学说话，大量阅读各种书籍<br>
+                            • 看到"我喜欢吃___"，学会填"苹果"、"香蕉"<br>
+                            • 看到"今天天气很___"，学会填"好"、"冷"<br>
+                            • 通过海量文本学会语言基本规律
+                        </div>
+                        <strong>技术特点：</strong>
+                        <ul>
+                            <li><span class="highlight">数据</span>：大规模无标注文本</li>
+                            <li><span class="highlight">任务</span>：下一个token预测</li>
+                            <li><span class="highlight">目标</span>：学习语言的基本规律</li>
+                            <li><span class="highlight">特点</span>：不需要老师教，就是"多读书，读好书"</li>
+                        </ul>
+                        这个阶段让模型掌握了语言的基础能力
+                    </div>
+                </div>
+
+                <div class="card color-training" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🎯</span>
+                        监督微调阶段
+                    </div>
+                    <div class="card-content">
+                        高质量问答对训练，学习如何正确回答问题和跟随指令
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>中学阶段 - 学会答题技巧
+                        <br><br>
+                        <div class="example">
+                            <strong>专门训练：</strong><br>
+                            现在有老师专门教怎么回答问题<br>
+                            • 问："什么是苹果？"<br>
+                            • 答："苹果是一种水果，富含维生素..."<br>
+                            • 问："怎么做苹果派？"<br>
+                            • 答："首先准备苹果，然后..."
+                        </div>
+                        <strong>技术特点：</strong>
+                        <ul>
+                            <li><span class="highlight">数据</span>：高质量问答对</li>
+                            <li><span class="highlight">任务</span>：指令跟随</li>
+                            <li><span class="highlight">目标</span>：学习如何回答问题</li>
+                            <li><span class="highlight">特点</span>：有"标准答案"，老师会纠正错误</li>
+                        </ul>
+                        学会了不同类型问题的回答格式和逻辑
+                    </div>
+                </div>
+
+                <div class="card color-training" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🌟</span>
+                        强化学习阶段
+                    </div>
+                    <div class="card-content">
+                        基于人类偏好的强化学习，生成更符合人类期望的回答
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>大学阶段 - 学会做人做事
+                        <br><br>
+                        <div class="example">
+                            <strong>情商训练：</strong><br>
+                            不仅要答对，还要答得让人喜欢<br>
+                            同样问"什么是苹果？"：<br>
+                            • 普通回答："苹果是水果"<br>
+                            • 优秀回答："苹果是一种营养丰富的水果，不仅美味，还富含维生素C，对健康很有益处"
+                        </div>
+                        <strong>技术特点：</strong>
+                        <ul>
+                            <li><span class="highlight">数据</span>：人类偏好数据</li>
+                            <li><span class="highlight">任务</span>：优化输出质量</li>
+                            <li><span class="highlight">目标</span>：生成更符合人类期望的回答</li>
+                            <li><span class="highlight">特点</span>：学会礼貌、有用、安全的回答方式</li>
+                        </ul>
+                        就像学会"情商"，不仅要说对，还要说得好听、有用
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 实际应用板块 -->
+        <div class="section" id="application">
+            <div class="section-header" onclick="toggleSection('application')">
+                <div class="section-title">
+                    <span class="section-icon">🚀</span>
+                    实际应用案例
+                </div>
+                <button class="toggle-btn">收起/展开</button>
+            </div>
+            <div class="cards-grid">
+                <div class="card color-application" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🌍</span>
+                        机器翻译应用
+                    </div>
+                    <div class="card-content">
+                        自注意力捕获词间关系，多头注意力多角度理解，生成准确翻译
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>超级翻译官的工作过程
+                        <br><br>
+                        <div class="example">
+                            <strong>输入：</strong>"I love artificial intelligence"<br><br>
+                            <strong>处理过程：</strong><br>
+                            1. 自注意力："我发现'I'和'love'关系密切，'love'和'artificial intelligence'也有关系"<br><br>
+                            2. 多头注意力分工：<br>
+                            • 头1："我专门分析语法结构，这是主谓宾结构"<br>
+                            • 头2："我专门分析情感，这表达喜爱之情"<br>
+                            • 头3："我专门分析词汇，'artificial intelligence'是专业术语，要翻译成'人工智能'"<br><br>
+                            3. 最终融合："综合考虑，最自然的中文表达是'我喜欢人工智能'"
+                        </div>
+                        <strong>技术优势：</strong>
+                        <ul>
+                            <li>捕获长距离依赖关系</li>
+                            <li>理解语法和语义结构</li>
+                            <li>生成流畅自然的译文</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-application" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">📄</span>
+                        文本摘要生成
+                    </div>
+                    <div class="card-content">
+                        识别关键信息，提取多维度特征，生成简洁准确的摘要
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>专业编辑的工作流程
+                        <br><br>
+                        <div class="example">
+                            <strong>编辑工作过程：</strong><br>
+                            1. 读全文："我要先把整篇文章都读一遍，理解每个段落在说什么"<br><br>
+                            2. 找重点："第1段是背景介绍，第3段是核心观点，第5段是重要证据"<br><br>
+                            3. 理关系："第3段的观点基于第2段分析得出，第5段是对第3段的支撑"<br><br>
+                            4. 写摘要："最重要的是第3段观点和第5段证据，其他可以省略"
+                        </div>
+                        <strong>技术过程：</strong>
+                        <ul>
+                            <li><span class="highlight">自注意力</span>：识别关键信息和次要信息</li>
+                            <li><span class="highlight">多头注意力</span>：提取不同维度特征（事件、人物、时间、地点）</li>
+                            <li><span class="highlight">生成机制</span>：产生简洁摘要</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-application" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">💻</span>
+                        代码生成应用
+                    </div>
+                    <div class="card-content">
+                        理解编程需求，关联相关知识，生成符合语法的高质量代码
+                    </div>
+                    <div class="card-detail">
+                        <strong>生活化理解：</strong>经验丰富程序员的思考过程
+                        <br><br>
+                        <div class="example">
+                            <strong>输入：</strong>"写一个计算斐波那契数列的Python函数"<br><br>
+                            <strong>程序员思考过程：</strong><br>
+                            1. 理解需求："用户要斐波那契数列，这是经典递归问题"<br><br>
+                            2. 回忆知识："我记得斐波那契规律是f(n) = f(n-1) + f(n-2)"<br><br>
+                            3. 选择方案："可以用递归，也可以用循环，循环效率更高"<br><br>
+                            4. 写代码："def fibonacci(n): ...，要考虑边界条件，要有返回值"<br><br>
+                            5. 检查语法："缩进对了吗？变量名合理吗？逻辑正确吗？"
+                        </div>
+                        <strong>技术能力：</strong>
+                        <ul>
+                            <li>理解自然语言需求</li>
+                            <li>关联编程知识和模式</li>
+                            <li>生成语法正确的代码</li>
+                            <li>考虑最佳实践和效率</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card color-application" onclick="toggleCard(this)">
+                    <div class="card-title">
+                        <span class="card-emoji">🤔</span>
+                        深入思考问题
+                    </div>
+                    <div class="card-content">
+                        为什么自注意力能并行？多头如何学会分工？扩展压缩的意义？
+                    </div>
+                    <div class="card-detail">
+                        <strong>核心问题解答：</strong>
+                        <br><br>
+                        <strong>1. 为什么自注意力能并行计算？</strong>
+                        <div class="example">
+                            RNN像接力跑：第1个人跑完传给第2个人...<br>
+                            自注意力像直升机：可以直接从第1个位置飞到第100个位置
+                        </div>
+                        <strong>2. 多头如何学会不同角度？</strong>
+                        <div class="example">
+                            训练过程中，不同的头会自然分化：<br>
+                            • 头1发现关注语法效果好，就专门学语法<br>
+                            • 头2发现关注情感效果好，就专门学情感<br>
+                            • 就像班级里同学自然形成不同兴趣小组
+                        </div>
+                        <strong>3. 扩展压缩的深层意义？</strong>
+                        <div class="example">
+                            扩展：给大脑更多"思考空间"<br>
+                            压缩：把复杂思考"总结"成简洁结论<br>
+                            就像解数学题：草稿纸上算很多步骤，最后写一个答案
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 搜索功能
+        document.getElementById('searchBox').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const cards = document.querySelectorAll('.card');
+            
+            cards.forEach(card => {
+                const title = card.querySelector('.card-title').textContent.toLowerCase();
+                const content = card.querySelector('.card-content').textContent.toLowerCase();
+                const detail = card.querySelector('.card-detail');
+                const detailText = detail ? detail.textContent.toLowerCase() : '';
+                
+                if (title.includes(searchTerm) || content.includes(searchTerm) || detailText.includes(searchTerm)) {
+                    card.style.display = 'block';
+                    // 高亮搜索词
+                    if (searchTerm) {
+                        highlightSearchTerm(card, searchTerm);
+                    }
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+
+        // 高亮搜索词
+        function highlightSearchTerm(card, term) {
+            const walker = document.createTreeWalker(
+                card,
+                NodeFilter.SHOW_TEXT,
+                null,
+                false
+            );
+            
+            const textNodes = [];
+            let node;
+            while (node = walker.nextNode()) {
+                textNodes.push(node);
+            }
+            
+            textNodes.forEach(textNode => {
+                const text = textNode.textContent;
+                const regex = new RegExp(`(${term})`, 'gi');
+                if (regex.test(text)) {
+                    const highlightedText = text.replace(regex, '<mark>$1</mark>');
+                    const span = document.createElement('span');
+                    span.innerHTML = highlightedText;
+                    textNode.parentNode.replaceChild(span, textNode);
+                }
+            });
+        }
+
+        // 卡片点击展开/收起
+        function toggleCard(card) {
+            card.classList.toggle('expanded');
+        }
+
+        // 板块折叠/展开
+        function toggleSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.classList.toggle('collapsed');
+        }
+
+        // 导航跳转
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            section.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function(e) {
+            // Ctrl/Cmd + F 聚焦搜索框
+            if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
+                e.preventDefault();
+                document.getElementById('searchBox').focus();
+            }
+            
+            // ESC 清空搜索
+            if (e.key === 'Escape') {
+                document.getElementById('searchBox').value = '';
+                document.getElementById('searchBox').dispatchEvent(new Event('input'));
+            }
+        });
+
+        // 打印优化
+        window.addEventListener('beforeprint', function() {
+            // 展开所有卡片以便打印
+            document.querySelectorAll('.card').forEach(card => {
+                card.classList.add('expanded');
+            });
+            
+            // 展开所有板块
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.remove('collapsed');
+            });
+        });
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 添加加载动画
+            document.querySelectorAll('.card').forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.style.animation = 'fadeInUp 0.6s ease forwards';
+            });
+        });
+
+        // 添加CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .card {
+                opacity: 0;
+            }
+            
+            mark {
+                background: #ffeb3b;
+                padding: 2px 4px;
+                border-radius: 3px;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>
